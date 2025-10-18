@@ -12,21 +12,16 @@ A Neovim plugin that provides utilities for working with the quickfix list, allo
 
 ## Installation
 
+### Using native package manager (v0.12+)
+
+```lua
+vim.pack.add("https://github.com/neurosnap/qfutil.nvim")
+```
+
 ### Using [lazy.nvim](https://github.com/folke/lazy.nvim)
 
 ```lua
 {
-  "neurosnap/qfutil.nvim",
-  config = function()
-    require("qfutil").setup()
-  end
-}
-```
-
-### Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
-
-```lua
-use {
   "neurosnap/qfutil.nvim",
   config = function()
     require("qfutil").setup()
@@ -54,6 +49,7 @@ Executes a system command and populates the quickfix list with the output. Assum
 :Qf find . -name '*.lua'
 :Qf git ls-files
 :Qf rg -l 'pattern'
+:Qf git diff --name-only
 ```
 
 #### `:Qfa {command}`
@@ -62,6 +58,7 @@ Same as `:Qf`, but automatically jumps to the first result and opens the file.
 **Example:**
 ```vim
 :Qfa find . -name 'init.lua'
+:Qfa fd -t f | fzf -f lua
 ```
 
 ### Functions
