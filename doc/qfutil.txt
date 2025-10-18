@@ -1,0 +1,183 @@
+*qfutil.txt*  Quickfix utilities for Neovim
+
+==============================================================================
+CONTENTS                                                    *qfutil-contents*
+
+    1. Introduction ..................... |qfutil-introduction|
+    2. Setup ............................ |qfutil-setup|
+    3. Configuration .................... |qfutil-configuration|
+    4. Commands ......................... |qfutil-commands|
+    5. Functions ........................ |qfutil-functions|
+    6. Usage Examples ................... |qfutil-examples|
+
+==============================================================================
+INTRODUCTION                                            *qfutil-introduction*
+
+qfutil.nvim is a Neovim plugin that provides utilities for working with the
+quickfix list. It allows you to convert system command output into a
+quickfix list, making it easy to navigate through files returned by various
+commands.
+
+Features:~
+  • Convert system command output to quickfix list
+  • Auto-jump to the first result
+  • Toggle quickfix window
+  • Automatic file path formatting
+  • Custom formatting function support
+
+==============================================================================
+SETUP                                                          *qfutil-setup*
+
+To get started, call the setup function in your init.lua:
+>
+    require("qfutil").setup({})
+<
+
+The plugin works out of the box with no configuration required.
+
+==============================================================================
+CONFIGURATION                                          *qfutil-configuration*
+
+The plugin currently has no configuration options. Simply call setup():
+>
+    require("qfutil").setup({})
+<
+
+==============================================================================
+COMMANDS                                                    *qfutil-commands*
+
+                                                                        *:Qf*
+:Qf {command}
+    Executes a system command and populates the quickfix list with the
+    output. Assumes the command returns a list of file paths (one per line)
+    in the first column without spaces.
+
+    The quickfix window opens automatically if there are multiple results.
+
+    Examples:~
+>
+        :Qf find . -name '*.lua'
+        :Qf git ls-files
+        :Qf rg -l 'pattern'
+        :Qf fd -t f
+<
+
+                                                                       *:Qfa*
+:Qfa {command}
+    Same as |:Qf|, but automatically jumps to the first result and opens
+    the file. Useful when you expect a single result or want to quickly
+    navigate to the first match.
+
+    Examples:~
+>
+        :Qfa find . -name 'init.lua'
+        :Qfa fd README.md
+<
+
+==============================================================================
+FUNCTIONS                                                  *qfutil-functions*
+
+setup({config})                                              *qfutil.setup()*
+    Configure the plugin.
+
+    Parameters: ~
+        {config} (table) Configuration options (currently none)
+
+    Example:~
+>
+        require("qfutil").setup({})
+<
+
+cqf({args})                                                    *qfutil.cqf()*
+    Converts command output to quickfix list. This is the core function
+    used by the |:Qf| and |:Qfa| commands.
+
+    Parameters: ~
+        {args} (table) A table with the following fields:
+            • cmd (string): System command to execute
+            • auto_jump (boolean): Whether to jump to the first result
+            • fmt (function, optional): Custom formatting function for
+              each line. Should accept a string and return a formatted
+              string in the format: "path:line:col:message"
+
+    Behavior:~
+        • Executes the command using vim.fn.systemlist()
+        • Formats each line using the provided or default formatter
+        • Populates the quickfix list
+        • Opens quickfix window if multiple results
+        • Jumps to first result if auto_jump is true
+
+    Example:~
+>
+        require("qfutil").cqf({
+          cmd = "find . -name '*.lua'",
+          auto_jump = true
+        })
+
+        -- With custom formatter
+        require("qfutil").cqf({
+          cmd = "git ls-files",
+          auto_jump = false,
+          fmt = function(line)
+            return string.format("%s:1:1:Git file", line)
+          end
+        })
+<
+
+toggle_qf()                                              *qfutil.toggle_qf()*
+    Toggles the quickfix window open or closed. If the quickfix window is
+    currently open, it closes it. Otherwise, it opens the quickfix window.
+
+    Example:~
+>
+        vim.keymap.set('n', '<leader>q', require("qfutil").toggle_qf,
+          { desc = "Toggle quickfix" })
+<
+
+==============================================================================
+USAGE EXAMPLES                                              *qfutil-examples*
+
+Finding files:~
+>
+    :Qf find . -type f -name '*.lua'
+    :Qf fd --type f --extension lua
+<
+
+Searching with ripgrep:~
+>
+    :Qf rg -l 'TODO'
+    :Qf rg --files-with-matches 'function'
+<
+
+Git integration:~
+>
+    :Qf git ls-files
+    :Qf git diff --name-only
+    :Qf git ls-files --modified
+<
+
+Quick navigation:~
+>
+    :Qfa find . -name 'README.md'
+    :Qfa fd init.lua
+<
+
+Setting up keymaps:~
+>
+    local qfutil = require("qfutil")
+
+    -- Toggle quickfix window
+    vim.keymap.set('n', '<leader>q', qfutil.toggle_qf,
+      { desc = "Toggle quickfix" })
+
+    -- Custom command wrappers
+    vim.keymap.set('n', '<leader>ff', function()
+      vim.ui.input({ prompt = "Find: " }, function(input)
+        if input then
+          qfutil.cqf({ cmd = "fd " .. input, auto_jump = false })
+        end
+      end)
+    end, { desc = "Find files" })
+<
+
+vim:tw=78:ts=8:ft=help:norl:
