@@ -1,10 +1,9 @@
 local M = {}
 
-M.config = {
-}
+M.config = {}
 
 function M.setup(opts)
-  M.config = vim.tbl_deep_extend("force", M.config, opts or {})
+	M.config = vim.tbl_deep_extend("force", M.config, opts or {})
 end
 
 local function cqf_fmt(line)
@@ -53,10 +52,6 @@ function M.cqf(args)
 		lines = fz,
 		efm = efm,
 	})
-
-	if #fz > 1 then
-		vim.cmd("copen")
-	end
 end
 
 function M.toggle_qf()
